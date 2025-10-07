@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google Login Test</title>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+  <h1>Google Login Test</h1>
+
+  <div id="g_id_onload"
+       data-client_id="791389243955-qmv75r55cfc4g32dmpaqej867mnotq82.apps.googleusercontent.com"
+       data-callback="handleCredentialResponse">
+  </div>
+
+  <div class="g_id_signin" data-type="standard"></div>
+
+  <form id="testForm">
+    <input type="text" name="address" placeholder="Address">
+    <input type="text" name="phone" placeholder="Phone">
+    <button type="submit">Test Google Login</button>
+  </form>
+
+  <pre id="result"></pre>
+
+  <script>
+    let googleAccessToken = '791389243955-qmv75r55cfc4g32dmpaqej867mnotq82.apps.googleusercontent.com';
+
+    // Callback after Google Sign-In
+    function handleCredentialResponse(response) {
+      googleAccessToken = response.credential; // This is the access token
+      console.log("Google Access Token:", googleAccessToken);
+      alert("Google token obtained. Now submit the form.");
+    }
+
+    const form = document.getElementById("testForm");
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const address = form.address.value;
+      const phone = form.phone.value;
+
+      if (!googleAccessToken) {
+        alert("Please login with Google first!");
+        return;
+      }
+
+      try {
+        const res = await fetch("http://localhost:5000/api/v1/google-login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            access_token: googleAccessToken,
+            address,
+            phone
+          })
+        });
+
+        const data = await res.json();
+        console.log(data);
+        document.getElementById("result").innerText = JSON.stringify(data, null, 2);
+
+      } catch (err) {
+        console.error(err);
+        alert("Error calling API");
+      }
+    });
+  </script>
+</body>
+</html>
